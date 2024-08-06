@@ -1,50 +1,33 @@
 name: Auto Branch and PR
-
 on:
   issues:
     types: [assigned]
-
 jobs:
   auto-branch-pr:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-
-    - name: Install GitHub CLI
-      run: |
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-        sudo apt-add-repository https://cli.github.com/packages
-        sudo apt update
-        sudo apt install gh
+      with:
+        fetch-depth: 0
 
     - name: Create a branch for the issue
       env:
-        GH_PAT: ${{ secrets.GH_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         ISSUE_NUMBER=${{ github.event.issue.number }}
-        ISSUE_TITLE=${{ github.event.issue.title }}
+        ISSUE_TITLE="${{ github.event.issue.title }}"
         ISSUE_BRANCH="issue-${ISSUE_NUMBER}-${ISSUE_TITLE// /-}"
-        ISSUE_BRANCH=$(echo $ISSUE_BRANCH | tr '[:upper:]' '[:lower:]')
-
+        ISSUE_BRANCH=$(echo $ISSUE_BRANCH | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-' | cut -c1-63)
         echo "Creating branch $ISSUE_BRANCH"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
+        git config user.name github-actions[bot]
+        git config user.email github-actions[bot]@users.noreply.github.com
         git checkout -b $ISSUE_BRANCH
         git push -u origin $ISSUE_BRANCH
-
-        echo "::set-output name=branch_name::$ISSUE_BRANCH"
+        echo "ISSUE_BRANCH=$ISSUE_BRANCH" >> $GITHUB_ENV
 
     - name: Create a pull request
       env:
-        GH_PAT: ${{ secrets.GH_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        ISSUE_NUMBER=${{ github.event.issue.number }}
-        ISSUE_TITLE=${{ github.event.issue.title }}
-        ISSUE_BRANCH=$(echo $ISSUE_BRANCH | tr '[:upper:]' '[:lower:]')
-
-        gh auth login --with-token <<< $GH_PAT
-        gh pr create --base main --head $ISSUE_BRANCH --title "Fix #$ISSUE_NUMBER - $ISSUE_TITLE" --body "Closes #$ISSUE_NUMBER"
+        gh pr create --base main --head $ISSUE_BRANCH --title "Fix #${{ github.event.issue.number }} - ${{ github.event.issue.title }}" --body "Closes #${{ github.event.issue.number }}"
