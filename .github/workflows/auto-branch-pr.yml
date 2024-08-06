@@ -1,9 +1,9 @@
-name: Auto Branch and PR
+name: Auto Branch for Issue
 on:
   issues:
     types: [assigned]
 jobs:
-  auto-branch-pr:
+  create-branch:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -23,13 +23,6 @@ jobs:
         echo "Creating branch $ISSUE_BRANCH"
         git config user.name github-actions[bot]
         git config user.email github-actions[bot]@users.noreply.github.com
-        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
         git checkout -b $ISSUE_BRANCH
         git push -u origin $ISSUE_BRANCH
-        echo "ISSUE_BRANCH=$ISSUE_BRANCH" >> $GITHUB_ENV
-
-    - name: Create a pull request
-      env:
-        GH_TOKEN: ${{ secrets.GH_PAT }}
-      run: |
-        gh pr create --base main --head $ISSUE_BRANCH --title "Fix #${{ github.event.issue.number }} - ${{ github.event.issue.title }}" --body "Closes #${{ github.event.issue.number }}"
+        echo "Branch $ISSUE_BRANCH has been created"
