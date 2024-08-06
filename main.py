@@ -16,7 +16,7 @@ def divide_numbers(a,b):
  if b==0:
         raise ValueError("Cannot divide by zero")
  return a/b
-if **name** == "__main__":
+if __name__ == "__main__":
  print(add_numbers(5,3))
  print(subtract_numbers(10,   4))
  print(multiply_numbers(2,6))
