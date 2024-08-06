@@ -1,0 +1,19 @@
+{
+  "include": [
+    "main.py",
+    "test_main.py"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__"
+  ],
+  "ignore": [
+    "src/oldstuff"
+  ],
+  "defineConstant": {
+    "DEBUG": true
+  },
+  "strictListInference": true,
+  "strictDictionaryInference": true,
+  "strictParameterNoneValue": true
+}
